@@ -1,0 +1,34 @@
+#!/bin/bash
+if [ $1'a' == 'a' ];then
+    echo '请输入域名或ip'
+    exit
+fi
+ip=$1
+pFile=/var/log/cping.log
+function setPingFile() {
+    ping -O $ip >> $pFile &
+}
+function statisticsPing() {
+    suc=0
+    err=0
+    ping='无限 ms'
+    lost='0.0%'
+    tail -f $pFile|while read line
+    do
+        if [ `echo $line|grep 'ttl=.*time='|wc -l` == 1 ];then
+            suc=$((suc+1))
+            ping=`echo $line|awk -F 'time=' '{print $2}'`
+        fi
+        if [ `echo $line|grep 'no answer yet'|wc -l` == 1 ];then
+            err=$((err+1))
+        fi
+        count=$((suc+err))
+        if [ $count != 0 ];then
+            lost=`awk 'BEGIN{printf "%.1f%%\n",('$err'/'$((suc+err))')*100}'`
+        fi
+	echo '延迟:'$ping' 总数:'$count' 接受成功:'$suc' 接受失败：'$err '丢包率: '$lost
+    done
+}
+echo '' > $pFile
+setPingFile
+statisticsPing
