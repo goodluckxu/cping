@@ -29,6 +29,9 @@ function statisticsPing() {
 	echo '延迟:'$ping' 总数:'$count' 接受成功:'$suc' 接受失败：'$err '丢包率: '$lost
     done
 }
-echo '' > $pFile
+if [ -f $pFile ];then
+    rm $pFile
+fi
+touch $pFile
 setPingFile
 statisticsPing
